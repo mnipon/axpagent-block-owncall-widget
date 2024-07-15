@@ -1,0 +1,9 @@
+{
+  "name": "AXP Agent Block Own Call",
+  "description": "AXP Agent Block Own Call",
+  "tags": ["agent", "block", "own call"],
+  "version": "0.0.1",
+  "element": "<axpagent-block-owncall></axpagent-block-owncall>",
+  "icon": "neo-icon-crm",
+  "files": ["axpagentblockowncall.js"]
+}

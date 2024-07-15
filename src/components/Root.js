@@ -2,94 +2,70 @@ import React, { useState, useEffect } from "react";
 
 import styles from "./Root.module.css";
 
-const acwTimer = 30; //After Contact Work Timer is 30 seconds
-
-function Root({ api, interactionId }) {
+function Root({ api, interactionId, clientDetails, getConfiguration }) {
+  //End Call Timer (10 seconds)
+  const endCallTimer = 10000;
   const [agentState, setAgentState] = useState(null);
+  const [direction, setDirection] = useState(null);
+  const [destinationAddress, setDestinationAddress] = useState(null);
+  const [alertMessage, setAlertMessage] = useState(null);
+  const agentVoiceAddress =
+    getConfiguration.userProfileDetailsList[0].defaultResource.address.match(
+      /^(.*)@/
+    )[1];
 
-  // Handle State for Agent State in "ACW" and "ACTIVE"
-  const [timerVisible, setTimerVisible] = useState(false);
-  const [startTime, setStartTime] = useState(null);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  // Format seconds to HH:MM:SS
-  const formatTime = (totalSeconds) => {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-
-    return `${hours.toString().padStart(2, "0")}:${minutes
-      .toString()
-      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-  };
+  // console.log("agent details is :", clientDetails);
+  // console.log("api is :", api);
+  // console.log("configuration is :", getConfiguration);
+  // console.log("agent voice number is :", agentVoiceAddress);
 
   // useEffect to get agent state to fix issue with too many re-renders with api
   useEffect(() => {
     api.onDataEvent("onInteractionEvent", (data) => {
+      // console.log("data is :", data);
       for (let i of Object.keys(data)) {
         if (i === "state") {
           setAgentState(data[i]);
+        }
+        if (i === "direction") {
+          setDirection(data[i]);
+        }
+        if (i === "destinationAddress") {
+          setDestinationAddress(data[i]);
         }
       }
     });
   }, [api]);
 
-  // useEffect for Agent State "ACW" and "ACTIVE"
   useEffect(() => {
-    console.log("agent state in Root is :", agentState);
-
-    const handleStatusChange = () => {
-      setTimerVisible(agentState === "ACW" || agentState === "ACTIVE");
-
-      if (agentState === "ACW" || agentState === "ACTIVE") {
-        // Start or reset the timer logic
-        setStartTime(performance.now());
-
-        const updateElapsedTime = () => {
-          setStartTime((prevStartTime) => {
-            const currentTime = performance.now();
-            const elapsedSeconds = Math.floor(
-              (currentTime - prevStartTime) / 1000
-            );
-            // Update the elapsed time
-            setElapsedTime(elapsedSeconds);
-
-            if (elapsedSeconds === acwTimer && agentState === "ACW") {
-              // Finish Interaction
-              api.finishInteraction(interactionId);
-              // finishInteraction();
-            }
-            return prevStartTime;
-          });
-        };
-
-        // Update the elapsed time every second
-        const timerInterval = setInterval(updateElapsedTime, 1000);
-
-        // Clean up the interval when the component unmounts or when the status changes
-        return () => {
-          clearInterval(timerInterval);
-          setStartTime(null);
-        };
-      }
-    };
-
-    handleStatusChange();
-  }, [agentState]);
+    if (destinationAddress === agentVoiceAddress && direction === "OUTGOING") {
+      setAlertMessage("YOU ARE NOT ALLOWED TO CALL YOUR OWN NUMBER!!!");
+      // End Interaction
+      console.log(alertMessage);
+      // Delay End Call for 10 seconds to let agent sees the notification message.  This part can be removed if required.
+      const timer = setTimeout(() => {
+        api.endInteraction(interactionId);
+      }, endCallTimer);
+      // Clean up the timer when component is unmounted
+      return () => clearTimeout(timer);
+    }
+  }, [
+    api,
+    destinationAddress,
+    agentState,
+    interactionId,
+    agentVoiceAddress,
+    alertMessage,
+    direction,
+  ]);
 
   return (
-    <div className={styles.container}>
-      {acwTimer && (
-        <div>
-          <div>After Contact Work Timer : {`${acwTimer} sec`}</div>
-        </div>
-      )}
-      {timerVisible && agentState && (
-        <div className={styles.agentState}>
-          <div>Agent State:</div>
-          <div>{agentState}</div>
-          <div>{formatTime(elapsedTime)}</div>
-        </div>
-      )}
+    <div
+      className={`${styles.container} ${
+        alertMessage ? styles.flexContainer : styles.hiddenContainer
+      }`}
+    >
+      <div className={styles.textAlert}>{alertMessage}</div>
     </div>
   );
 }

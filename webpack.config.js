@@ -1,10 +1,10 @@
 const path = require("path");
 
 module.exports = {
-  entry: path.resolve(__dirname, "src", "AXPAgentACWClientSide.js"),
+  entry: path.resolve(__dirname, "src", "AXPAgentBlockOwnCall.js"),
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "axpagentacwclientside.js",
+    filename: "axpagentblockowncall.js",
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js"],

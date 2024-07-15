@@ -1,18 +1,23 @@
 .container {
   width: 99%;
   height: 60px;
-  display: flex;
   flex-direction: column;
   padding: 10px 20px;
   background-color: white;
   border: 1px solid #d0d0d0;
   font-size: 13px;
+  justify-content: center;
+  align-items: center;
 }
 
-.agentState {
+.flexContainer {
   display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 10px;
+}
+
+.hiddenContainer {
+  display: none;
+}
+
+.textAlert {
+  color: red;
 }
